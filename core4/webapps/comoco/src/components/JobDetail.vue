@@ -59,24 +59,16 @@
                   <v-row>
                     <v-col
                       cols="10"
-                      class="pr-1 pl-8 py-0"
+                      class="pa-0"
                     >
-                      <!--                  <ace-editor
+                      <ace-editor
                         disabled
                         :height="'400px'"
                         label="Log"
                         language="rdoc"
                         font-family="monospace"
                         :value="internalLogMessage"
-                      /> -->
-                      <v-textarea
-                      auto-grow
-                        filled
-                        :dark="$store.getters.dark"
-                        label=""
-                        :value="internalLogMessage"
-                        readonly
-                      ></v-textarea>
+                      />
                     </v-col>
                     <v-col
                       cols="2"
@@ -85,9 +77,7 @@
                       class="pr-6"
                       style="margin-top:100px;"
                     >
-
                       <job-managment-buttons :job-count="jobs.length" />
-
                     </v-col>
                   </v-row>
                 </td>
@@ -126,6 +116,26 @@
               </template>
             </v-data-table>
           </v-col>
+          <!--    <v-col cols="2">
+            <job-managment-buttons :job-count="jobs.length" />
+          </v-col> -->
+          <!--    <v-col cols="6">
+            <pre>{{jobs}}</pre>
+          </v-col> -->
+          <!--           <v-col
+            cols="12"
+            v-if="job"
+          >
+
+            <ace-editor
+              disabled
+              :height="'480px'"
+              label="Log"
+              language="rdoc"
+              font-family="monospace"
+              :value="internalLogMessage"
+            />
+          </v-col> -->
         </v-row>
       </v-card-text>
     </v-card>
@@ -133,6 +143,7 @@
 </template>
 
 <script>
+import AceEditor from '@/components/AceEditor.vue'
 import JobManagmentButtons from '@/components/job/JobManagmentButtons.vue'
 import JobStateFilter from '@/components/job/JobStateFilter.vue'
 import { mapGetters } from 'vuex'
@@ -205,6 +216,7 @@ export default {
   },
   components: {
     JobManagmentButtons,
+    AceEditor,
     JobStateFilter
   },
   data () {
@@ -250,6 +262,23 @@ export default {
         this.dialog = true
       }
     }
+    /*     job (newValue, oldValue) {
+      if (newValue !== oldValue && newValue != null) {
+        this.dialog = true
+      } else {
+        this.dialog = false
+      }
+    }, */
+    /*     id (newValue, oldValue) {
+      console.log(newValue)
+      this.$nextTick(function () {
+        if (newValue !== oldValue && newValue != null) {
+          this.dialog = true
+        } else {
+          this.dialog = false
+        }
+      })
+    } */
   },
   computed: {
     jobsAvail () {
@@ -265,7 +294,7 @@ export default {
       return this.job._id
     },
     internalLogMessage () {
-      return this.log// .map(val => val.date + ' | ' + val.message).join('\n')
+      return this.log.map(val => val.date + ' | ' + val.message).join('\n')
     },
     internalJobs () {
       return this.filteredJobs.map(val => {
@@ -293,7 +322,19 @@ tr.prog {
   position: relative;
   box-shadow: 0px 24px 3px -24px magenta !important;
 }
-
+/*tr.prog td:first-child::after {
+  pointer-events: none;
+  content: attr(data-width);
+  position: absolute;
+  display: block;
+  height: inherit;
+  height: inherit;
+  left: 0;
+  top: 0;
+  right: 0;
+  width: 1;
+  background: rgba(0, 0, 0, 0.2);
+} */
 </style>
 <style lang="scss" scoped>
 .job-count {
@@ -324,14 +365,6 @@ tr.prog {
 }
 /*TODO: import {jobColors} from '@/.../settings.js */
 ::v-deep {
-  .v-textarea {
-    font-family: monospace !important;
-    textarea{
-
-    font-size: 13px !important;
-    line-height: 15px !important;
-    }
-  }
   .pending-border td:first-child {
     border-left: 7px solid #ffc107 !important;
   }

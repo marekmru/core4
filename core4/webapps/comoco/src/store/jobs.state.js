@@ -16,7 +16,6 @@ function clearSSE (e) {
       e.source.removeEventListener('update')
       e.source.removeEventListener('close')
       e.source.removeEventListener('error')
-      e.source.close()
     } else {
       sses.forEach(sse => {
         sse.removeEventListener('log')
@@ -39,11 +38,10 @@ function onSseError (e) {
 }
 const state = {
   filter: null,
-  log: '',
+  log: [],
   error: null,
   job: { _id: null },
-  jobs: [],
-  jobManagerBusy: false
+  jobs: []
 }
 
 const actions = {
@@ -95,11 +93,11 @@ const actions = {
     sses.push(sse)
     sse.addEventListener('log', e => {
       const json = JSON.parse(e.data)
-      const { message, epoch } = json
+      const { message, epoch, level } = json
       context.dispatch('addLog', {
         message,
-        date: formatDate(new Date(epoch * 1000))
-        // level
+        date: formatDate(new Date(epoch * 1000)),
+        level
       })
     })
     sse.addEventListener('error', onSseError)
@@ -217,32 +215,26 @@ const actions = {
     context.commit('addStateFilter', states)
   },
   async manageJob (context, action = 'restart') {
-    context.commit('setJobManagerBusy', true)
     window.clearTimeout(tiFetchJobs)
     const current = _.cloneDeep(context.state.job)
     try {
       await api.put(`jobs/${action}/${context.state.job._id}`)
       tiFetchJobs = window.setTimeout(function () {
         context.dispatch('fetchJobsByName', current)
-      }, 500)
+      }, 2500)
     } catch (err) {
       Vue.prototype.raiseError(err)
     } finally {
-      context.commit('setJobManagerBusy', false)
     }
   }
 }
 
 const mutations = {
-  setJobManagerBusy (state, payload) {
-    state.jobManagerBusy = payload
-  },
   addStateFilter (state, payload) {
     state.filter = payload
   },
   addLog (state, payload) {
-    state.log = (state.log || '') + payload.date + ' | ' + payload.message + '\n'
-    // state.log = (state.log || []).concat([payload])
+    state.log = (state.log || []).concat([payload])
   },
   clearLog (state, payload) {
     state.log = []
@@ -263,8 +255,28 @@ const mutations = {
       state.job = state.jobs[0] || null
     }
   },
+  /*   cleanupCompletedJobs (state) {
+    state.jobs = state.jobs.filter(val => {
+      if (val.state !== 'complete') {
+        return true
+      }
+      if (state.job._id === val._id) {
+        state.job = state.jobs[0] || null
+      }
+      return false
+    })
+  }, */
   updateJob (state, delta) {
     state.jobs = state.jobs.map(val => {
+      /*       Object.keys(delta).forEach(key => {
+        if (
+          typeof val[key] === 'string' &&
+          delta[key] !== val[key]
+        ) {
+          console.log('update', val._id, key, val[key], '>', delta[key])
+          console.log('--------------------------------------')
+        }
+      }) */
       if (val._id === delta._id) {
         val = _.merge(val, delta)
         if (val.state === 'complete') {
@@ -288,9 +300,6 @@ const mutations = {
 const getters = {
   job (state) {
     return state.job
-  },
-  jobManagerBusy (state) {
-    return state.jobManagerBusy
   },
 
   filter (state) {

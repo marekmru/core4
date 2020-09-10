@@ -104,7 +104,9 @@ const api = {
       .get('/_info', { params: { per_page: 1000, page: 0 } })
       .then(result => {
         const user = JSON.parse(window.localStorage.getItem('user') || {})
-        const token = `?token=${user.token || -1}`
+        const token = `?token=${
+          user.token || -1
+        }`
         const widgets = result.data
         let endpoint
         let pathEnd
@@ -138,7 +140,7 @@ axiosInternal.interceptors.response.use(
   async error => {
     // First load of the widget app
     if (
-      error.config.url.includes('/setting') &&
+      error.config.url.includes(`${process.env.VUE_APP_APIBASE_CORE}/setting`) &&
       error.config.method === 'get' &&
       error.response.status === 400
     ) {
